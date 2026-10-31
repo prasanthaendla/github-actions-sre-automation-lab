@@ -1,0 +1,10 @@
+﻿---
+- name: SRE Automation CI Validation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Verify Ansible execution
+      ansible.builtin.debug:
+        msg: "Ansible playbook syntax is valid."

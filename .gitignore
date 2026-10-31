@@ -1,0 +1,30 @@
+# Terraform working directory
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform plan files
+*.tfplan
+*.plan
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Sensitive variable files
+*.tfvars
+*.tfvars.json
+
+# Keep Terraform dependency lock file
+!**/.terraform.lock.hcl
+
+# Ansible retry files
+*.retry
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
