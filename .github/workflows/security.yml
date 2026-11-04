@@ -36,3 +36,19 @@ jobs:
 
       - name: Scan Terraform configuration
         run: checkov --directory terraform --framework terraform
+
+  gitleaks:
+    name: Git Secret Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
