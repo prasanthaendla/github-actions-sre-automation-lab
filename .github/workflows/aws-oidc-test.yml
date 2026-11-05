@@ -1,0 +1,38 @@
+
+name: AWS OIDC Authentication Test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-oidc-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authenticate:
+    name: AWS OIDC Authentication
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::418295691815:role/GitHubActions-SRE-Automation-Role
+          aws-region: ap-south-2
+          role-session-name: GitHubActionsSREOIDCTest
+
+      - name: Verify AWS identity
+        run: |
+          echo "AWS OIDC authentication successful."
+          aws sts get-caller-identity
