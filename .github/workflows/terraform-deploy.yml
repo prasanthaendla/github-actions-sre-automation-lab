@@ -1,0 +1,60 @@
+
+name: Terraform AWS Deployment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-aws-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Provision PostgreSQL EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "0"
+      TF_VAR_ssh_allowed_cidr: ${{ secrets.SSH_ALLOWED_CIDR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+
+      - name: Terraform Initialize
+        run: terraform -chdir=terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate -no-color
+
+      - name: Terraform Plan
+        run: terraform -chdir=terraform plan -input=false -no-color -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan
+
+      - name: Display EC2 details
+        run: |
+          echo "EC2 instance ID:"
+          terraform -chdir=terraform output -raw postgres_instance_id
+          echo "EC2 public IP:"
+          terraform -chdir=terraform output -raw postgres_public_ip
+          echo "EC2 private IP:"
+          terraform -chdir=terraform output -raw postgres_private_ip
