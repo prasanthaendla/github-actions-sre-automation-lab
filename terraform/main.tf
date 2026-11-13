@@ -1,4 +1,3 @@
-
 locals {
   project_name = "github-actions-sre-automation-lab"
   environment  = "lab"
@@ -10,12 +9,10 @@ locals {
   }
 }
 
-# Discover the existing default VPC
 data "aws_vpc" "default" {
   default = true
 }
 
-# Discover an existing default subnet in the selected region
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -33,7 +30,6 @@ data "aws_subnets" "default" {
   }
 }
 
-# Discover the latest Ubuntu 24.04 LTS AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -64,7 +60,6 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# Security group for PostgreSQL EC2
 resource "aws_security_group" "postgres" {
   name        = "${local.project_name}-postgres-sg"
   description = "Restricted SSH access for PostgreSQL lab server"
@@ -99,11 +94,12 @@ resource "aws_security_group" "postgres" {
   })
 }
 
-#checkov:skip=CKV_AWS_88:Public IPv4 is required for the current SSH-based lab connectivity design.
-#checkov:skip=CKV_AWS_126:Basic CloudWatch monitoring is sufficient for this cost-conscious lab.
-#checkov:skip=CKV2_AWS_41:This PostgreSQL instance does not currently require AWS API access.
-# Provision PostgreSQL EC2 instance
 resource "aws_instance" "postgres" {
+  # Checkov exceptions for this controlled lab design:
+  #checkov:skip=CKV_AWS_126:Basic monitoring is retained to control lab costs.
+  #checkov:skip=CKV_AWS_88:Public IPv4 is required for the current SSH-based lab connectivity.
+  #checkov:skip=CKV2_AWS_41:This PostgreSQL instance does not currently require AWS API access.
+
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   key_name                    = var.key_name
