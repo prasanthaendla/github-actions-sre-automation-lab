@@ -79,10 +79,18 @@ resource "aws_security_group" "postgres" {
   }
 
   egress {
-    description = "Allow outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "Allow HTTP outbound traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow HTTPS outbound traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -91,6 +99,9 @@ resource "aws_security_group" "postgres" {
   })
 }
 
+#checkov:skip=CKV_AWS_88:Public IPv4 is required for the current SSH-based lab connectivity design.
+#checkov:skip=CKV_AWS_126:Basic CloudWatch monitoring is sufficient for this cost-conscious lab.
+#checkov:skip=CKV2_AWS_41:This PostgreSQL instance does not currently require AWS API access.
 # Provision PostgreSQL EC2 instance
 resource "aws_instance" "postgres" {
   ami                         = data.aws_ami.ubuntu.id
@@ -99,6 +110,7 @@ resource "aws_instance" "postgres" {
   subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.postgres.id]
   associate_public_ip_address = true
+  ebs_optimized               = true
 
   root_block_device {
     volume_size           = var.root_volume_size
